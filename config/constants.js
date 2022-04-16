@@ -1,14 +1,17 @@
 module.exports = {
     PORT: process.env.PORT,
+    CUSTOMER_SERVICE_URL: process.env.CUSTOMER_SERVICE_URL,
     QUEUE: {
-        TRANSACTION_QUEUE: "tramsaction_queue",
+        TRANSACTION_QUEUE: "transaction_queue",
         TRANSACTION_SUCCESS: "transaction_success"
     },
+    TRANSACTION: {
+        CREDIT: "credit",
+        DEBIT: "debit"
+    },
     STATUS: {
-        QUEUED: "QUEUED",
-        SENT: "SENT",
-        DELIVERED: "DELIVERED",
-        OPENED: "OPENED",
-        PENDING: "PENDING"
+        SUCCESS: "success",
+        PENDING: "pending",
+        FAILED: "failed"
     }
 }

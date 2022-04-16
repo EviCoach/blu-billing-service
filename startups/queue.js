@@ -1,6 +1,11 @@
 "use strict";
 const amqp = require("amqplib");
-const { QUEUE } = require("../config/Constants");
+const { QUEUE, CUSTOMER_SERVICE_URL, STATUS } = require("../config/Constants");
+const axios = require("axios");
+const transactionRepository = require("../app/transactions/transaction_repository");
+const customerServiceWebhook = axios.create({
+    baseURL: CUSTOMER_SERVICE_URL
+});
 let connection;
 const init = async () => {
     try {
@@ -18,20 +23,34 @@ const receiveMessage = async (connection) => {
     if (!connection) {
         connection = init();
     }
-    const channel = await connection.createChannel();
-    await channel.assertQueue(QUEUE.TRANSACTION_SUCCESS, { durable: true });
-    channel.consume(QUEUE.TRANSACTION_SUCCESS, message => {
-        console.log(`[X] Received ${message.content.toString()}`);
-    }, { noAck: true });
+    try {
+        const channel = await connection.createChannel();
+        await channel.assertQueue(QUEUE.TRANSACTION_SUCCESS, { durable: true });
+        channel.consume(QUEUE.TRANSACTION_SUCCESS, async message => {
+            const data = JSON.parse(message.content.toString());
+            console.log(`[X] Received ${message.content.toString()}`);
+            await transactionRepository.update({ uuid: data.transactionId }, {
+                status: STATUS.SUCCESS
+            });
+
+            customerServiceWebhook.post("api/v1/callback/fund", data);
+
+        }, { noAck: true });
+    } catch (err) {
+        console.error("Error calling customer service webhook");
+    }
 }
 
 exports.sendMessage = async (queueName, message) => {
     if (!connection) {
         connection = init();
     }
+
     const channel = await connection.createChannel();
     channel.assertQueue(queueName);
-    channel.sendToQueue(queueName, Buffer.from(message))
+    const sent = await channel.sendToQueue(queueName, Buffer.from(message));
+    console.log("Pushing to queue", sent);
+    return sent;
 }
 
 init();

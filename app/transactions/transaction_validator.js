@@ -7,7 +7,7 @@ exports.fund = (req, res, next) => {
         const schema = Joi.object({
             amount: Joi.number().required(),
             customerId: Joi.string().required(),
-            createdAt: Joi.date().required()
+            // createdAt: Joi.date().required()
         });
 
         const value = schema.validate(req.body, { abortEarly: false });
