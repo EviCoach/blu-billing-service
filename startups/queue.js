@@ -1,6 +1,6 @@
 "use strict";
 const amqp = require("amqplib");
-const { QUEUE, CUSTOMER_SERVICE_URL, STATUS } = require("../config/Constants");
+const { QUEUE, CUSTOMER_SERVICE_URL, STATUS } = require("../config/constants");
 const axios = require("axios");
 const transactionRepository = require("../app/transactions/transaction_repository");
 const customerServiceWebhook = axios.create({
@@ -53,4 +53,5 @@ exports.sendMessage = async (queueName, message) => {
     return sent;
 }
 
+// setTimeout(init, 20000);
 init();
